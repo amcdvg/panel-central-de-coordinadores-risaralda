@@ -343,11 +343,11 @@ export default function App() {
 
         {/* Tabs Section */}
         {selectedComuna && (
-          <div className="flex flex-wrap p-1 bg-slate-200/50 rounded-2xl mb-8 max-w-4xl mx-auto sm:mx-0 gap-1">
+          <div className="w-full p-1 bg-slate-200/50 rounded-2xl mb-8 flex flex-wrap sm:flex-nowrap gap-1">
             <button
               onClick={() => setActiveTab('PUESTO')}
               className={cn(
-                "flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
                 activeTab === 'PUESTO' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -359,7 +359,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('TRANSPORTE')}
               className={cn(
-                "flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
                 activeTab === 'TRANSPORTE' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -371,7 +371,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('BASE_DATOS')}
               className={cn(
-                "flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
                 activeTab === 'BASE_DATOS' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -383,7 +383,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('CALL_CENTER')}
               className={cn(
-                "flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
                 activeTab === 'CALL_CENTER' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
