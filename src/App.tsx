@@ -183,20 +183,9 @@ export default function App() {
 
         const searchableText = searchableFields.join(' ');
         
-        // Count how many query words are present in the item's fields
-        const matchCount = queryWords.filter(word => searchableText.includes(word)).length;
-        
-        // Flexible matching logic:
-        // 1 word -> must match 1
-        // 2 words -> must match at least 1
-        // 3+ words -> must match at least 2
-        if (queryWords.length === 1) {
-          return matchCount >= 1;
-        } else if (queryWords.length === 2) {
-          return matchCount >= 1;
-        } else {
-          return matchCount >= 2;
-        }
+        // Exact matching logic: All query words must be present in the searchable text
+        // This ensures that if multiple words are typed, only results containing ALL of them are shown.
+        return queryWords.every(word => searchableText.includes(word));
       });
     }
 
