@@ -153,8 +153,7 @@ export default function App() {
       results = results.filter(item => item.MUNICIPIO === selectedMunicipio);
     }
 
-    // Special logic: If Comuna is selected, it shows all in that Comuna within the Municipio,
-    // effectively making the Church filter a helper to find the Comuna but not a restriction for the results.
+    // Special logic: If Comuna is selected, it shows all in that Comuna within the Municipio
     if (selectedComuna) {
       results = results.filter(item => item.COMUNA === selectedComuna);
     } else if (selectedIglesia) {
@@ -163,7 +162,11 @@ export default function App() {
 
     // Apply intelligent search if query exists
     if (searchQuery.trim()) {
-      const queryWords = searchQuery.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0);
+      // Normalize function to remove accents and lowercase
+      const normalize = (text: string) => 
+        text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      const queryWords = normalize(searchQuery).trim().split(/\s+/).filter(word => word.length > 0);
       
       results = results.filter(item => {
         const searchableFields = [
@@ -176,20 +179,24 @@ export default function App() {
           item['PUNTO DE RECOGIDA TRANSPORTE'],
           item['PUNTO DE DESCARGA TRANSPORTE'],
           item.TELEFONO
-        ].map(v => v?.toLowerCase() || '');
+        ].map(v => normalize(v || ''));
 
         const searchableText = searchableFields.join(' ');
         
         // Count how many query words are present in the item's fields
         const matchCount = queryWords.filter(word => searchableText.includes(word)).length;
         
-        // Logic requested: If 3 or more words, return result if at least 2 match
-        if (queryWords.length >= 3) {
+        // Flexible matching logic:
+        // 1 word -> must match 1
+        // 2 words -> must match at least 1
+        // 3+ words -> must match at least 2
+        if (queryWords.length === 1) {
+          return matchCount >= 1;
+        } else if (queryWords.length === 2) {
+          return matchCount >= 1;
+        } else {
           return matchCount >= 2;
         }
-        
-        // For 1 or 2 words, require all to match for precision
-        return matchCount === queryWords.length;
       });
     }
 
