@@ -326,7 +326,14 @@ export default function App() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (e.target.value.trim()) {
+                  setSelectedMunicipio('');
+                  setSelectedIglesia('');
+                  setSelectedComuna('');
+                }
+              }}
               placeholder="Buscador inteligente: Escriba nombre, función, municipio, iglesia, comuna o casa de apoyo..."
               className="block w-full pl-14 pr-4 py-5 bg-white border border-slate-200 rounded-3xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 shadow-sm transition-all text-lg"
             />
@@ -367,7 +374,10 @@ export default function App() {
                 </label>
                 <select 
                   value={selectedMunicipio}
-                  onChange={(e) => setSelectedMunicipio(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedMunicipio(e.target.value);
+                    if (e.target.value) setSearchQuery('');
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
                 >
                   <option value="">Seleccione Municipio</option>
@@ -384,7 +394,10 @@ export default function App() {
                 </label>
                 <select 
                   value={selectedIglesia}
-                  onChange={(e) => setSelectedIglesia(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedIglesia(e.target.value);
+                    if (e.target.value) setSearchQuery('');
+                  }}
                   disabled={!selectedMunicipio}
                   className={cn(
                     "w-full border rounded-xl px-4 py-3 text-slate-700 outline-none transition-all appearance-none cursor-pointer",
@@ -405,7 +418,10 @@ export default function App() {
                 </label>
                 <select 
                   value={selectedComuna}
-                  onChange={(e) => setSelectedComuna(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedComuna(e.target.value);
+                    if (e.target.value) setSearchQuery('');
+                  }}
                   disabled={!selectedIglesia}
                   className={cn(
                     "w-full border rounded-xl px-4 py-3 text-slate-700 outline-none transition-all appearance-none cursor-pointer",
