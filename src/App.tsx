@@ -148,19 +148,17 @@ export default function App() {
   const filteredResults = useMemo(() => {
     let results = data;
 
-    // Apply hierarchical filters if set
+    // Apply hierarchical filters
     if (selectedMunicipio) {
       results = results.filter(item => item.MUNICIPIO === selectedMunicipio);
     }
-    if (selectedIglesia) {
-      results = results.filter(item => item.IGLESIA === selectedIglesia);
-    }
+
+    // Special logic: If Comuna is selected, it shows all in that Comuna within the Municipio,
+    // effectively making the Church filter a helper to find the Comuna but not a restriction for the results.
     if (selectedComuna) {
-      // We keep the logic of showing all in comuna within municipio if church is selected
-      results = data.filter(item => 
-        item.MUNICIPIO === selectedMunicipio && 
-        item.COMUNA === selectedComuna
-      );
+      results = results.filter(item => item.COMUNA === selectedComuna);
+    } else if (selectedIglesia) {
+      results = results.filter(item => item.IGLESIA === selectedIglesia);
     }
 
     // Apply intelligent search if query exists
@@ -417,7 +415,7 @@ export default function App() {
         </section>
 
         {/* Tabs Section */}
-        {(selectedComuna || searchQuery.trim()) && (
+        {(selectedMunicipio || selectedIglesia || selectedComuna || searchQuery.trim()) && (
           <div className="w-full p-1 bg-slate-200/50 rounded-2xl mb-8 flex flex-wrap sm:flex-nowrap gap-1">
             <button
               onClick={() => setActiveTab('TODOS')}
