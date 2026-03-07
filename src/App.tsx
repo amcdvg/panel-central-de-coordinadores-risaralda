@@ -53,7 +53,8 @@ export default function App() {
   const [selectedMunicipio, setSelectedMunicipio] = useState<string>('');
   const [selectedIglesia, setSelectedIglesia] = useState<string>('');
   const [selectedComuna, setSelectedComuna] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'PUESTO' | 'TRANSPORTE' | 'BASE_DATOS' | 'CALL_CENTER'>('PUESTO');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'TODOS' | 'PUESTO' | 'TRANSPORTE' | 'BASE_DATOS' | 'CALL_CENTER'>('TODOS');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,23 +146,73 @@ export default function App() {
   }, [data, selectedMunicipio, selectedIglesia]);
 
   const filteredResults = useMemo(() => {
-    if (!selectedComuna) return [];
-    // Filter by Municipio and Comuna to show all coordinators in that Comuna
-    // even if they are listed under a different church in the same municipio
-    return data.filter(item => 
-      item.MUNICIPIO === selectedMunicipio && 
-      item.COMUNA === selectedComuna
-    );
-  }, [data, selectedMunicipio, selectedComuna]);
+    let results = data;
+
+    // Apply hierarchical filters if set
+    if (selectedMunicipio) {
+      results = results.filter(item => item.MUNICIPIO === selectedMunicipio);
+    }
+    if (selectedIglesia) {
+      results = results.filter(item => item.IGLESIA === selectedIglesia);
+    }
+    if (selectedComuna) {
+      // We keep the logic of showing all in comuna within municipio if church is selected
+      results = data.filter(item => 
+        item.MUNICIPIO === selectedMunicipio && 
+        item.COMUNA === selectedComuna
+      );
+    }
+
+    // Apply intelligent search if query exists
+    if (searchQuery.trim()) {
+      const queryWords = searchQuery.toLowerCase().trim().split(/\s+/).filter(word => word.length > 0);
+      
+      results = results.filter(item => {
+        const searchableFields = [
+          item['NOMBRE COMPLETO'],
+          item.MUNICIPIO,
+          item.IGLESIA,
+          item.COMUNA,
+          item['FUNCIÓN'],
+          item['CASA DE APOYO'],
+          item['PUNTO DE RECOGIDA TRANSPORTE'],
+          item['PUNTO DE DESCARGA TRANSPORTE'],
+          item.TELEFONO
+        ].map(v => v?.toLowerCase() || '');
+
+        const searchableText = searchableFields.join(' ');
+        
+        // Count how many query words are present in the item's fields
+        const matchCount = queryWords.filter(word => searchableText.includes(word)).length;
+        
+        // Logic requested: If 3 or more words, return result if at least 2 match
+        if (queryWords.length >= 3) {
+          return matchCount >= 2;
+        }
+        
+        // For 1 or 2 words, require all to match for precision
+        return matchCount === queryWords.length;
+      });
+    }
+
+    // If no search and no comuna selected, return empty to prompt user
+    if (!searchQuery.trim() && !selectedComuna) return [];
+
+    return results;
+  }, [data, selectedMunicipio, selectedIglesia, selectedComuna, searchQuery]);
 
   const clearFilters = () => {
     setSelectedMunicipio('');
     setSelectedIglesia('');
     setSelectedComuna('');
-    setActiveTab('PUESTO');
+    setSearchQuery('');
+    setActiveTab('TODOS');
   };
 
   const tabResults = useMemo(() => {
+    if (activeTab === 'TODOS') {
+      return filteredResults;
+    }
     if (activeTab === 'PUESTO') {
       return filteredResults.filter(item => 
         item['FUNCIÓN']?.toUpperCase().includes('PUESTO')
@@ -260,6 +311,30 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Bar Section */}
+        <section className="mb-8">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscador inteligente: Escriba nombre, función, municipio, iglesia, comuna o casa de apoyo..."
+              className="block w-full pl-14 pr-4 py-5 bg-white border border-slate-200 rounded-3xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 shadow-sm transition-all text-lg"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-slate-600"
+              >
+                <AlertCircle className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </section>
+
         {/* Filter Section */}
         <section className="mb-8">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -342,12 +417,24 @@ export default function App() {
         </section>
 
         {/* Tabs Section */}
-        {selectedComuna && (
+        {(selectedComuna || searchQuery.trim()) && (
           <div className="w-full p-1 bg-slate-200/50 rounded-2xl mb-8 flex flex-wrap sm:flex-nowrap gap-1">
+            <button
+              onClick={() => setActiveTab('TODOS')}
+              className={cn(
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[120px]",
+                activeTab === 'TODOS' 
+                  ? "bg-white text-blue-600 shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <Users className="w-4 h-4" />
+              TODOS
+            </button>
             <button
               onClick={() => setActiveTab('PUESTO')}
               className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[120px]",
                 activeTab === 'PUESTO' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -359,7 +446,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('TRANSPORTE')}
               className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[120px]",
                 activeTab === 'TRANSPORTE' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -371,7 +458,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('BASE_DATOS')}
               className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[120px]",
                 activeTab === 'BASE_DATOS' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -383,7 +470,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('CALL_CENTER')}
               className={cn(
-                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[140px]",
+                "flex-1 py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 min-w-[120px]",
                 activeTab === 'CALL_CENTER' 
                   ? "bg-white text-blue-600 shadow-sm" 
                   : "text-slate-500 hover:text-slate-700"
@@ -398,7 +485,7 @@ export default function App() {
         {/* Results Section */}
         <section>
           <AnimatePresence mode="wait">
-            {!selectedComuna ? (
+            {!selectedComuna && !searchQuery.trim() ? (
               <motion.div 
                 key="empty"
                 initial={{ opacity: 0, y: 10 }}
@@ -411,7 +498,7 @@ export default function App() {
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Inicie una búsqueda</h3>
                 <p className="text-slate-500 max-w-xs text-center">
-                  Seleccione un municipio, iglesia y comuna para visualizar la información de los coordinadores.
+                  Utilice el buscador inteligente o seleccione un municipio, iglesia y comuna para visualizar la información.
                 </p>
               </motion.div>
             ) : tabResults.length === 0 ? (
@@ -443,12 +530,14 @@ export default function App() {
                     {/* Card Header */}
                     <div className={cn(
                       "p-6 text-white relative overflow-hidden transition-colors",
+                      activeTab === 'TODOS' ? "bg-slate-800" :
                       activeTab === 'PUESTO' ? "bg-blue-600" : 
                       activeTab === 'TRANSPORTE' ? "bg-indigo-600" :
                       activeTab === 'BASE_DATOS' ? "bg-emerald-600" : "bg-violet-600"
                     )}>
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                        {activeTab === 'PUESTO' ? <User className="w-24 h-24" /> : 
+                        {activeTab === 'TODOS' ? <Users className="w-24 h-24" /> :
+                         activeTab === 'PUESTO' ? <User className="w-24 h-24" /> : 
                          activeTab === 'TRANSPORTE' ? <Truck className="w-24 h-24" /> :
                          activeTab === 'BASE_DATOS' ? <Database className="w-24 h-24" /> : <Headset className="w-24 h-24" />}
                       </div>
