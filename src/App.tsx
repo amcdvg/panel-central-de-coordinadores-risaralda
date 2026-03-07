@@ -297,9 +297,10 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900 leading-tight">
-                Panel Central de Coordinadores
+                <span className="hidden sm:inline">Panel Central de Coordinadores Risaralda</span>
+                <span className="sm:hidden">Panel Central de Coordinadores</span>
               </h1>
-              <p className="text-sm text-slate-500 font-medium">
+              <p className="text-sm text-slate-500 font-medium hidden sm:block">
                 Risaralda · Dashboard Directorios de coordinadores
               </p>
             </div>
